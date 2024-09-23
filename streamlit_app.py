@@ -31,65 +31,6 @@ from pyquery import PyQuery as pq
 import time
 import openpyxl as op               #导入Excel读写库
 
-# App title
-st.set_page_config(page_title="🍑💬 Taobao Products lists Chatbot")
-
-# Replicate Credentials
-with st.sidebar:
-    st.title('🍑💬 Taobao Products lists Chatbot')
-    st.write('This chatbot is created for search the taobao products lists from taobao mall.')
-
-    st.subheader('Models and parameters')
-    input_pageStart = st.sidebar.text_input('起始页')
-    input_pageEnd = st.sidebar.text_input('终止页')
-
-    input_pageStart = st.sidebar.slider('起始页', min_value=1, max_value=100.0, value=1, step=1)
-    input_pageEnd = st.sidebar.slider('终止页', min_value=1, max_value=100, value=100, step=1)
-    st.markdown('📖 Learn how to build this app in this [blog](https://blog.csdn.net/qq_46315152/article/details/140696405)!')
-
-# Display or clear chat messages
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.write(message["content"])
-
-def clear_chat_history():
-    st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
-st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
-
-# Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
-def generate_llama2_response(prompt_input):
-    string_dialogue = "You are a helpful assistant. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'."
-    for dict_message in st.session_state.messages:
-        if dict_message["role"] == "user":
-            string_dialogue += "User: " + dict_message["content"] + "\n\n"
-        else:
-            string_dialogue += "Assistant: " + dict_message["content"] + "\n\n"
-    output = replicate.run('a16z-infra/llama13b-v2-chat:df7690f1994d94e96ad9d568eac121aecf50684a0b0963b25a41cc40061269e5', 
-                           input={"prompt": f"{string_dialogue} {prompt_input} Assistant: ",
-                                  "temperature":temperature, "top_p":top_p, "max_length":max_length, "repetition_penalty":1})
-    return output
-
-# User-provided prompt
-if prompt := st.chat_input("Please enter your message here"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.write(prompt)
-
-# Generate a new response if last message is not from assistant
-if st.session_state.messages[-1]["role"] != "assistant":
-    with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
-            response = generate_llama2_response(prompt)
-            placeholder = st.empty()
-            full_response = ''
-            for item in response:
-                full_response += item
-                placeholder.markdown(full_response)
-            placeholder.markdown(full_response)
-    message = {"role": "assistant", "content": full_response}
-    st.session_state.messages.append(message)
-
-
 # 全局变量
 count = 1                           # 写入Excel商品计数
  
@@ -231,17 +172,17 @@ def get_goods(page):
         print(product)
  
         # 商品信息写入Excel表格中
-        wb.cell(row=count, column=1, value=page)                # 页码
-        wb.cell(row=count, column=2, value=count-1)             # 序号
-        wb.cell(row=count, column=3, value=title)               # 标题
-        wb.cell(row=count, column=4, value=price)               # 价格
-        wb.cell(row=count, column=5, value=deal)                # 付款人数
-        wb.cell(row=count, column=6, value=location)            # 地理位置
-        wb.cell(row=count, column=7, value=shop)                # 店铺名称
-        wb.cell(row=count, column=8, value=postText)            # 是否包邮
-        wb.cell(row=count, column=9, value=t_url)               # 商品链接
-        wb.cell(row=count, column=10, value=shop_url)           # 商铺链接
-        wb.cell(row=count, column=11, value=img_url)            # 图片链接
+        # wb.cell(row=count, column=1, value=page)                # 页码
+        # wb.cell(row=count, column=2, value=count-1)             # 序号
+        # wb.cell(row=count, column=3, value=title)               # 标题
+        # wb.cell(row=count, column=4, value=price)               # 价格
+        # wb.cell(row=count, column=5, value=deal)                # 付款人数
+        # wb.cell(row=count, column=6, value=location)            # 地理位置
+        # wb.cell(row=count, column=7, value=shop)                # 店铺名称
+        # wb.cell(row=count, column=8, value=postText)            # 是否包邮
+        # wb.cell(row=count, column=9, value=t_url)               # 商品链接
+        # wb.cell(row=count, column=10, value=shop_url)           # 商铺链接
+        # wb.cell(row=count, column=11, value=img_url)            # 图片链接
         count += 1                                              # 下一行
  
 # 爬虫main函数
@@ -251,9 +192,35 @@ def Crawer_main(KEYWORD,pageStart,pageEnd):
         search_goods(KEYWORD,pageStart,pageEnd)
     except Exception as exc:
         print('Crawer_main函数报错:', exc)
- 
-if __name__ == '__main__':
- 
+
+# App title
+st.set_page_config(page_title="🍑💬 Taobao Products lists Chatbot")
+
+# Replicate Credentials
+with st.sidebar:
+    st.title('🍑💬 Taobao Products lists Chatbot')
+    st.write('This chatbot is created for search the taobao products lists from taobao mall.')
+
+    st.subheader('Models and parameters')
+    input_pageStart = st.sidebar.text_input('起始页')
+    input_pageEnd = st.sidebar.text_input('终止页')
+
+    input_pageStart = st.sidebar.slider('起始页', min_value=1, max_value=100.0, value=1, step=1)
+    input_pageEnd = st.sidebar.slider('终止页', min_value=1, max_value=100, value=100, step=1)
+    st.markdown('📖 Learn how to build this app in this [blog](https://blog.csdn.net/qq_46315152/article/details/140696405)!')
+
+# Display or clear chat messages
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
+
+def clear_chat_history():
+    st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
+st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
+
+# Function for generating LLaMA2 response. Refactored from https://github.com/a16z-infra/llama2-chatbot
+def generate_llama2_response(prompt_input):
+
     KEYWORD = prompt                                         # 要搜索的商品的关键词
     pageStart = input_pageStart                              # 爬取起始页
     pageEnd = input_pageEnd                                  # 爬取终止页
@@ -276,6 +243,29 @@ if __name__ == '__main__':
  
     # 保存Excel表格
     # Filename = input("输入存储文件名称：")
-    # Filename = Filename + '(_From_Taobao).xlsx'
+    Filename = '(_From_Taobao).xlsx'
     # ws.save(filename = Filename)
     # print(Filename + "存储成功~")
+
+    output = Filename
+    return output
+
+# User-provided prompt
+if prompt := st.chat_input("Please enter your message here"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.write(prompt)
+
+# Generate a new response if last message is not from assistant
+if st.session_state.messages[-1]["role"] != "assistant":
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            response = generate_llama2_response(prompt)
+            placeholder = st.empty()
+            full_response = ''
+            for item in response:
+                full_response += item
+                placeholder.markdown(full_response)
+            placeholder.markdown(full_response)
+    message = {"role": "assistant", "content": full_response}
+    st.session_state.messages.append(message)
