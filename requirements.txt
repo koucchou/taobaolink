@@ -1,5 +1,1 @@
 streamlit
-replicate
-pyquery
-selenium
-openpyxl
